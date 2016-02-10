@@ -2,3 +2,6 @@ Revision history for Dist-Zilla-Plugin-ChangeStats-Dependencies-Git
 
 {{$NEXT}}
   - Initial release
+
+0.0001  Unreleased
+ - For test
