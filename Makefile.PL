@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use 5.014000;
+use 5.010000;
 
 use ExtUtils::MakeMaker;
 
@@ -14,9 +14,20 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "Dist-Zilla-Plugin-ChangeStats-Dependencies-Git",
   "LICENSE" => "perl",
-  "MIN_PERL_VERSION" => "5.014000",
+  "MIN_PERL_VERSION" => "5.010000",
   "NAME" => "Dist::Zilla::Plugin::ChangeStats::Dependencies::Git",
-  "PREREQ_PM" => {},
+  "PREREQ_PM" => {
+    "CPAN::Changes" => "0.400002",
+    "CPAN::Changes::Group" => 0,
+    "Dist::Zilla::Role::FileMunger" => "5.000",
+    "Dist::Zilla::Role::Plugin" => "5.000",
+    "Git::Repository" => 0,
+    "JSON::MaybeXS" => 0,
+    "Module::CPANfile" => 0,
+    "Moose" => "2.1400",
+    "Types::Standard" => "1.000000",
+    "namespace::autoclean" => "0.18"
+  },
   "TEST_REQUIRES" => {
     "ExtUtils::MakeMaker" => 0,
     "File::Spec" => 0,
@@ -32,11 +43,21 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "CPAN::Changes" => "0.400002",
+  "CPAN::Changes::Group" => 0,
+  "Dist::Zilla::Role::FileMunger" => "5.000",
+  "Dist::Zilla::Role::Plugin" => "5.000",
   "ExtUtils::MakeMaker" => 0,
   "File::Spec" => 0,
+  "Git::Repository" => 0,
   "IO::Handle" => 0,
   "IPC::Open3" => 0,
-  "Test::More" => "0.96"
+  "JSON::MaybeXS" => 0,
+  "Module::CPANfile" => 0,
+  "Moose" => "2.1400",
+  "Test::More" => "0.96",
+  "Types::Standard" => "1.000000",
+  "namespace::autoclean" => "0.18"
 );
 
 

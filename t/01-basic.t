@@ -13,7 +13,7 @@ subtest first_release => sub {
     my $tzil = make_tzil({ auto_previous_tag => 1 });
 
     like $tzil->slurp_file('build/Changes'),
-        qr{ 
+        qr{
             0\.0002
             \s+
             2[-\d\s:+]+    # date+time
@@ -25,19 +25,40 @@ subtest first_release => sub {
 
 subtest normal => sub {
 
-    my $tzil = make_tzil({ auto_previous_tag => 1 }, qi{
-        0.0001    Unreleased
+    my $tzil = make_tzil({ auto_previous_tag => 1, group => 'Dependency Changes' }, qi{
+        0.0001    Not Released
          - Not much of a change
     });
 
+    like $tzil->slurp_file('build/Changes'), qr/\[Dependency Changes\]/, 'Group created';
+    like $tzil->slurp_file('build/Changes'), qr/\(runtime requires\) Added Moosey/, 'New dependecy added';
 
-    like $tzil->slurp_file('build/Changes'),
-        qr/
-            \[STATISTICS\]\s*\n
-            \s*-\s*code\schurn:\s+\d+\sfiles?\schanged,
-            \s\d+\sinsertions?\(\+\),\s\d+\sdeletions?\(-\)
-        /x,
-        'using skip_file without hit';
+    if($ENV{'AUTHOR_TESTING'}) {
+        like $tzil->slurp_file('build/Changes'), qr/\(develop requires\) Changed Test::More/, 'Dependecy version changed';
+        like $tzil->slurp_file('build/Changes'), qr/\(develop requires\) Removed Dist::Iller/, 'Dependecy removed';
+    }
+};
+
+subtest existing_group => sub {
+
+    # the ; is for indentation
+    my $tzil = make_tzil({ auto_previous_tag => 1, group => 'Dependency Changes' }, qi{
+        ;
+         [Dependency Changes]
+         - With a change
+
+        0.0001    Not Released
+         - Not much of a change
+    });
+
+    like $tzil->slurp_file('build/Changes'), qr/\[Dependency Changes\]/, 'Group created';
+    like $tzil->slurp_file('build/Changes'), qr/\(runtime requires\) Added Moosey/, 'New dependecy added';
+    like $tzil->slurp_file('build/Changes'), qr/\[Dependency Changes\][\s\n\r]*- With a change[\s\r\n]*- \(runtime/, 'Changes added to existing group';
+
+    if($ENV{'AUTHOR_TESTING'}) {
+        like $tzil->slurp_file('build/Changes'), qr/\(develop requires\) Changed Test::More/, 'Dependecy version changed';
+        like $tzil->slurp_file('build/Changes'), qr/\(develop requires\) Removed Dist::Iller/, 'Dependecy removed';
+    }
 };
 
 done_testing;
@@ -54,13 +75,14 @@ sub make_tzil {
             NextRelease
             FakeRelease
             Git::Tag
-        /
+            Prereqs::FromCPANfile
+        /,
     );
+
     my $changelog = qqi{
         Revision history for {{\$dist->name}}
 
         {{\$NEXT}}
-
         $changes
     };
 
@@ -70,7 +92,7 @@ sub make_tzil {
             add_files => {
                 'source/dist.ini' => $ini,
                 'source/Changes' => $changelog,
-                'source/META.json' => meta_json(),
+                'source/cpanfile' => cpanfile(),
             },
         },
     );
@@ -78,47 +100,33 @@ sub make_tzil {
     return $tzil;
 }
 
-sub meta_json {
-   return encode_json({
-        'prereqs' => {
-          'configure' => {
-             'requires' => {
-                'ExtUtils::MakeMaker' => '0'
-             }
-          },
-          'develop' => {
-             'requires' => {
-                'Dist::Zilla::Plugin::BumpVersionAfterRelease::Transitional' => '0',
-                'Dist::Zilla::Plugin::CheckChangesHasContent' => '0',
-                'Dist::Zilla::Plugin::ExecDir' => '0',
-                'Dist::Zilla::Plugin::Git::Check' => '0',
-                'Dist::Zilla::Plugin::Git::Contributors' => '0',
-                'Dist::Zilla::Plugin::Git::GatherDir' => '0',
-                'Dist::Zilla::Plugin::Git::Push' => '0',
-                'Test::More' => '0.96',
-                'Test::NoTabs' => '0',
-                'Test::Pod' => '1.40',
-                'Test::Warnings' => '0'
-             }
-          },
-          'runtime' => {
-             'requires' => {
-                'perl' => '5.010002',
-                'Moose' => 2.1400,
-             }
-          },
-          'test' => {
-             'recommends' => {
-                'CPAN::Meta' => '2.120900'
-             },
-             'requires' => {
-                'ExtUtils::MakeMaker' => '0',
-                'File::Spec' => '0',
-                'IO::Handle' => '0',
-                'IPC::Open3' => '0',
-                'Test::More' => '0.96'
-             }
-          }
-       },
-    });
+sub cpanfile {
+    return qi{
+        configure_requires 'ExtUtils::MakeMaker' => '0';
+        on develop => sub {
+            requires 'Dist::Zilla::Plugin::BumpVersionAfterRelease::Transitional' => '0';
+            requires 'Dist::Zilla::Plugin::CheckChangesHasContent' => '0';
+            requires 'Dist::Zilla::Plugin::ExecDir' => '0';
+            requires 'Dist::Zilla::Plugin::Git::Check' => '0';
+            requires 'Dist::Zilla::Plugin::Git::Contributors' => '0';
+            requires 'Dist::Zilla::Plugin::Git::GatherDir' => '0';
+            requires 'Dist::Zilla::Plugin::Git::Push' => '0';
+            requires 'Test::More' => '0.000001';
+            requires 'Test::NoTabs' => '0';
+            requires 'Test::Pod' => '1.40';
+            requires 'Test::Warnings' => '0';
+        };
+        on runtime => sub {
+            requires 'perl' => '5.010002';
+            requires 'Moosey' => '2.1400';
+        };
+        on test => sub {
+            recommends 'CPAN::Meta' => '2.120800';
+            requires 'ExtUtils::MakeMaker' => '0';
+            requires 'File::Spec' => '0';
+            requires 'IO::Handle' => '0';
+            requires 'IPC::Open3' => '0';
+            requires 'Test::More' => '0.96';
+        };
+    }
 }

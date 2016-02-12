@@ -11,7 +11,9 @@ use Moose;
 use namespace::autoclean;
 use Types::Standard qw/ArrayRef Bool HashRef Str/;
 use Git::Repository;
+use Module::CPANfile;
 use CPAN::Changes;
+use CPAN::Changes::Group;
 use JSON::MaybeXS qw/decode_json/;
 
 with qw/
@@ -28,73 +30,33 @@ has change_file => (
     isa => Str,
     default => 'Changes',
 );
-has release_branch => (
-    is => 'ro',
-    isa => Str,
-    default => 'releases',
-);
-has auto_previous_tag => (
-    is => 'ro',
-    isa => Bool,
-    default => 0,
-);
 has group => (
     is => 'ro',
     isa => Str,
     default => '',
 );
-has stats => (
+has format_tag => (
     is => 'ro',
-    isa => HashRef,
-    lazy => 1,
-    traits => ['Hash'],
-    builder => '_build_stats',
-    init_arg => undef,
+    isa => Str,
+    default => '%s',
 );
-
-sub _build_stats {
-    my $self = shift;
-    use Data::Printer;
-    p $self->zilla;
-
-    my $prev = $self->auto_previous_tag ? $self->_get_previous_tag : $self->release_branch;
-    return {} if !defined $prev;
-warn '----';
-    p $prev;
-    warn '----';
-    $self->repo->run(qw/show META:json/);
-    warn $prev;
-    return {};
-}
-
-sub _get_previous_tag {
-    my $self = shift;
-
-    my @plugins = grep { $_->isa('Dist::Zilla::Plugin::Git::Tag') } @{ $self->zilla->plugins_with( '-Git::Repo' ) };
-
-    die "We dont know what to do with multiple Git::Tag plugins loaded!" if scalar @plugins > 1;
-    die "Please load the Git::Tag plugin to use auto_release_tag or disable it!" if ! scalar @plugins;
-
-    (my $match = $plugins[0]->tag_format) =~ s/\%\w/\.\+/g; # hack.
-    $match = (grep { $_ =~ /$match/ } $self->repo->run('tag'))[-1];
-
-    if(!defined $match ) {
-        $self->log('Unable to find the previous tag, trying to find the first commit!');
-        $match = $self->repo->run('rev-list',  '--max-parents=0', 'HEAD');
-        if(!defined $match ) {
-            $self->log('Unable to find the first commit, giving up!');
-            return;
-        }
-    }
-    return $match;
-}
 
 sub munge_files {
     my $self = shift;
-        use Data::Printer;
+
     my($file) = grep { $_->name eq $self->change_file } @{ $self->zilla->files };
 
+    if(!defined $file) {
+        $self->log(['Could not find changelog (%s) - nothing to do', $self->change_file]);
+        return;
+    }
+
     my $changes = CPAN::Changes->load_string($file->content, next_token => $self->_next_token);
+    my($this_release) = ($changes->releases)[-1];
+    if($this_release->version ne '{{$NEXT}}') {
+        $self->log(['Cound not find {{$NEXT}} token - skips']);
+        return;
+    }
 
     my($previous_release) = grep { $_->version ne '{{$NEXT}}' } reverse $changes->releases;
 
@@ -102,9 +64,60 @@ sub munge_files {
         $self->log(['Has no earlier versions in changelog - no dependency changes']);
         return;
     }
+    else {
+        $self->log_debug(['Will compare dependencies with %s'], $previous_release->version);
+    }
 
-    p $previous_release;
-    warn '--' x 20;
+    # Fetch META.json from the latest tag
+    my($show_output) = join '' => $self->repo->run('show', join ':' => (sprintf ($self->format_tag, $previous_release->version), 'META.json'));
+    if($show_output =~ m{^fatal:}) {
+        $self->log(['Could not find META.json in the %s release - skipping', $previous_release->version]);
+        return;
+    }
+    my $metajson = decode_json($show_output)->{'prereqs'};
+    my $cpanfile = Module::CPANfile->load->prereqs->as_string_hash;
+
+    my @requirement_changes = ();
+
+    PHASE:
+    for my $phase (qw/runtime test configure develop/) {
+        RELATION:
+        for my $relation (qw/requires recommends suggests/) {
+            my $prev = $metajson->{ $phase }{ $relation } || {};
+            my $now = $cpanfile->{ $phase }{ $relation } || {};
+
+            next RELATION if !scalar keys %{ $prev } && !scalar keys %{ $now };
+
+            # What is in the current release that wasn't in (or has changed since) the last release.
+            MODULE:
+            for my $module (sort keys %{ $now }) {
+                my $current_version = delete $now->{ $module } || '(any)';
+                my $previous_version = exists $prev->{ $module } ? delete $prev->{ $module } : undef;
+
+                if(!defined $previous_version) {
+                    push @requirement_changes => "($phase $relation) Added $module $current_version";
+                    next MODULE;
+                }
+
+                $previous_version = $previous_version || '(any)';
+                if($current_version ne $previous_version) {
+                    push @requirement_changes => "($phase $relation) Changed $module $previous_version --> $current_version";
+                }
+            }
+            # What was in the last release that currenly isn't there
+            for my $module (sort keys %{ $prev }) {
+                push @requirement_changes => "($phase $relation) Removed $module";
+            }
+        }
+    }
+
+    if(!scalar @requirement_changes) {
+        push @requirement_changes => 'No changes';
+    }
+
+    my $group = $this_release->get_group($self->group);
+    $group->add_changes(@requirement_changes);
+    $file->content($changes->serialize);
 }
 
 sub _next_token { qr/\{\{\$NEXT\}\}/ }
@@ -119,12 +132,53 @@ __END__
 
 =head1 SYNOPSIS
 
-    use Dist::Zilla::Plugin::ChangeStats::Dependencies::Git;
+    ; in dist.ini
+    [ChangeStats::Dependencies::Git]
+    group = Dependency Changes
 
 =head1 DESCRIPTION
 
-Dist::Zilla::Plugin::ChangeStats::Dependencies::Git is ...
+This plugin adds detailed information about changes in requirements to the changelog, possibly in a group.
+
+     [Dependency Changes]
+     - (runtime requires) Added Moose (any)
+     - (runtime requires) Removed Acme::Resume
+     - (develop requires) Changed List::Util 1.40 --> 1.42
+
+For this to work the following must be true:
+
+=for :list
+* The changelog must conform to L<CPAN::Changes::Spec>.
+* There must be a L<C<panfile>> (this is the source of current dependencies) in the distribution root.
+* Git tag names must be identical to (or a superset of) the version numbers in the changelog.
+* There must be a C<META.json> commited in the git tags.
+* The plugin should come before [NextRelease] or similar in dist.ini.
+
+=head1 ATTRIBUTES
+
+=head2 change_file
+
+Default: C<Changes>
+
+The name of the changelog file.
+
+
+=head2 group
+
+Default: No group
+
+The group (if any) under which to add the dependency changes. If the group already exists these changes will be appended to that group.
+
+
+=head2 format_tag
+
+Default: C<%s>
+
+Use this ff the Git tags are formatted differently to the versions in the changelog. C<%s> gets replaced with the version.
 
 =head1 SEE ALSO
+
+=for :list
+* L<Dist::Zilla::Plugin::ChangeStats::Git>
 
 =cut
