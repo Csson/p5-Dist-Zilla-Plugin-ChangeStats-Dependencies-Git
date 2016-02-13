@@ -9,6 +9,16 @@ use Dist::Zilla::Plugin::ChangeStats::Dependencies::Git;
 
 use Test::DZil;
 
+$SIG{'__WARN__'} = sub {
+    # Travis has an uninitialized warning in CPAN::Changes on 5.10
+    if($] < 5.012000 && caller eq 'CPAN::Changes') {
+        diag 'Caught warning: ' . shift;
+    }
+    else {
+        warn shift;
+    }
+};
+
 subtest first_release => sub {
     my $tzil = make_tzil({ auto_previous_tag => 1 });
 
