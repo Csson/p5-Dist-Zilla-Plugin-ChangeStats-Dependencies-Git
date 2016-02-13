@@ -77,12 +77,18 @@ sub munge_files {
     my $metajson = decode_json($show_output)->{'prereqs'};
     my $cpanfile = Module::CPANfile->load->prereqs->as_string_hash;
 
-    my @requirement_changes = ();
+    my @all_requirement_changes = ();
 
     PHASE:
     for my $phase (qw/runtime test build configure develop/) {
         RELATION:
         for my $relation (qw/requires recommends suggests/) {
+            my $requirement_changes = {
+                added => [],
+                changed => [],
+                removed => [],
+            };
+
             my $prev = $metajson->{ $phase }{ $relation } || {};
             my $now = $cpanfile->{ $phase }{ $relation } || {};
 
@@ -95,28 +101,33 @@ sub munge_files {
                 my $previous_version = exists $prev->{ $module } ? delete $prev->{ $module } : undef;
 
                 if(!defined $previous_version) {
-                    push @requirement_changes => ($self->phase_relation($phase, $relation) . " + $module $current_version");
+                    push @{ $requirement_changes->{'added'} } => "$module $current_version";
                     next MODULE;
                 }
 
                 $previous_version = $previous_version || '(any)';
                 if($current_version ne $previous_version) {
-                    push @requirement_changes => ($self->phase_relation($phase, $relation) . " ~ $module $previous_version --> $current_version");
+                    push @{ $requirement_changes->{'changed'} } => "$module $previous_version --> $current_version";
                 }
             }
             # What was in the last release that currenly isn't there
             for my $module (sort keys %{ $prev }) {
-                push @requirement_changes => ($self->phase_relation($phase, $relation) . " - $module");
+                push @{ $requirement_changes->{'removed'} } => $module;
+            }
+
+            # Add requirement changes to overall list
+            for my $type (qw/added changed removed/) {
+                my $char = $type eq 'added' ? '+' : $type eq 'changed' ? '~' : $type eq 'removed' ? '-' : '!';
+
+                for my $module (@{ $requirement_changes->{ $type }}) {
+                    push @all_requirement_changes => ($self->phase_relation($phase, $relation) . " $char $module");
+                }
             }
         }
     }
 
-    if(!scalar @requirement_changes) {
-        push @requirement_changes => 'No changes';
-    }
-
     my $group = $this_release->get_group($self->group);
-    $group->add_changes(@requirement_changes);
+    $group->add_changes(@all_requirement_changes);
     $file->content($changes->serialize);
 }
 
@@ -134,6 +145,7 @@ sub phase_relation {
            :                         $phase
            ;
     $relation = substr $relation, 0, 3;
+
     return "($phase $relation)";
 }
 
