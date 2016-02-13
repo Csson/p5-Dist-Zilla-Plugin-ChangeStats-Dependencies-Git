@@ -25,8 +25,10 @@ my %WriteMakefileArgs = (
     "JSON::MaybeXS" => 0,
     "Module::CPANfile" => 0,
     "Moose" => "2.1400",
+    "Syntax::Feature::Qi" => "0.2004",
     "Types::Standard" => "1.000000",
-    "namespace::autoclean" => "0.18"
+    "namespace::autoclean" => "0.18",
+    "syntax" => 0
   },
   "TEST_REQUIRES" => {
     "ExtUtils::MakeMaker" => 0,
@@ -55,9 +57,11 @@ my %FallbackPrereqs = (
   "JSON::MaybeXS" => 0,
   "Module::CPANfile" => 0,
   "Moose" => "2.1400",
+  "Syntax::Feature::Qi" => "0.2004",
   "Test::More" => "0.96",
   "Types::Standard" => "1.000000",
-  "namespace::autoclean" => "0.18"
+  "namespace::autoclean" => "0.18",
+  "syntax" => 0
 );
 
 

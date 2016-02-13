@@ -2,11 +2,11 @@
 
 Dist::Zilla::Plugin::ChangeStats::Dependencies::Git - Add dependency changes to the changelog
 
-![Requires Perl 5.10+](https://img.shields.io/badge/perl-5.10+-brightgreen.svg) [![Travis status](https://api.travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git.svg?branch=master)](https://travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git) ![coverage 88.9%](https://img.shields.io/badge/coverage-88.9%-orange.svg)
+![Requires Perl 5.10+](https://img.shields.io/badge/perl-5.10+-brightgreen.svg) [![Travis status](https://api.travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git.svg?branch=master)](https://travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git) 
 
 # VERSION
 
-Version 0.0100, released 2016-02-12.
+Version 0.0100, released 2016-02-13.
 
 # SYNOPSIS
 
@@ -16,12 +16,14 @@ Version 0.0100, released 2016-02-12.
 
 # DESCRIPTION
 
-This plugin adds detailed information about changes in requirements to the changelog, possibly in a group.
+This plugin adds detailed information about changes in requirements to the changelog, possibly in a group. The
+synopsis might add this:
 
      [Dependency Changes]
-     - (runtime requires) Added Moose (any)
-     - (runtime requires) Removed Acme::Resume
-     - (develop requires) Changed List::Util 1.40 --> 1.42
+     - (run req) + Moose (any)
+     - (run req) - No::Longer::Used
+     - (test sug) + Something::Useful 0.82
+     - (dev req) ~ List::Util 1.40 --> 1.42
 
 For this to work the following must be true:
 
@@ -49,7 +51,7 @@ The group (if any) under which to add the dependency changes. If the group alrea
 
 Default: `%s`
 
-Use this ff the Git tags are formatted differently to the versions in the changelog. `%s` gets replaced with the version.
+Use this if the Git tags are formatted differently to the versions in the changelog. `%s` gets replaced with the version.
 
 # SEE ALSO
 

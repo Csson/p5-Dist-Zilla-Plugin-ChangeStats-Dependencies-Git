@@ -80,7 +80,7 @@ sub munge_files {
     my @requirement_changes = ();
 
     PHASE:
-    for my $phase (qw/runtime test configure develop/) {
+    for my $phase (qw/runtime test build configure develop/) {
         RELATION:
         for my $relation (qw/requires recommends suggests/) {
             my $prev = $metajson->{ $phase }{ $relation } || {};
@@ -95,18 +95,18 @@ sub munge_files {
                 my $previous_version = exists $prev->{ $module } ? delete $prev->{ $module } : undef;
 
                 if(!defined $previous_version) {
-                    push @requirement_changes => "($phase $relation) Added $module $current_version";
+                    push @requirement_changes => ($self->phase_relation($phase, $relation) . " + $module $current_version");
                     next MODULE;
                 }
 
                 $previous_version = $previous_version || '(any)';
                 if($current_version ne $previous_version) {
-                    push @requirement_changes => "($phase $relation) Changed $module $previous_version --> $current_version";
+                    push @requirement_changes => ($self->phase_relation($phase, $relation) . " ~ $module $previous_version --> $current_version");
                 }
             }
             # What was in the last release that currenly isn't there
             for my $module (sort keys %{ $prev }) {
-                push @requirement_changes => "($phase $relation) Removed $module";
+                push @requirement_changes => ($self->phase_relation($phase, $relation) . " - $module");
             }
         }
     }
@@ -121,6 +121,21 @@ sub munge_files {
 }
 
 sub _next_token { qr/\{\{\$NEXT\}\}/ }
+
+sub phase_relation {
+    my $self = shift;
+    my $phase = shift;
+    my $relation = shift;
+
+    $phase = $phase eq 'runtime'   ? 'run'
+           : $phase eq 'test'      ? 'test'
+           : $phase eq 'configure' ? 'conf'
+           : $phase eq 'develop'   ? 'dev'
+           :                         $phase
+           ;
+    $relation = substr $relation, 0, 3;
+    return "($phase $relation)";
+}
 
 __PACKAGE__->meta->make_immutable;
 
@@ -138,12 +153,14 @@ __END__
 
 =head1 DESCRIPTION
 
-This plugin adds detailed information about changes in requirements to the changelog, possibly in a group.
+This plugin adds detailed information about changes in requirements to the changelog, possibly in a group. The
+synopsis might add this:
 
      [Dependency Changes]
-     - (runtime requires) Added Moose (any)
-     - (runtime requires) Removed Acme::Resume
-     - (develop requires) Changed List::Util 1.40 --> 1.42
+     - (run req) + Moose (any)
+     - (run req) - No::Longer::Used
+     - (test sug) + Something::Useful 0.82
+     - (dev req) ~ List::Util 1.40 --> 1.42
 
 For this to work the following must be true:
 
@@ -174,7 +191,7 @@ The group (if any) under which to add the dependency changes. If the group alrea
 
 Default: C<%s>
 
-Use this ff the Git tags are formatted differently to the versions in the changelog. C<%s> gets replaced with the version.
+Use this if the Git tags are formatted differently to the versions in the changelog. C<%s> gets replaced with the version.
 
 =head1 SEE ALSO
 

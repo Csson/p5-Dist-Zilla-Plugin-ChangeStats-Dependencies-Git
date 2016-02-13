@@ -31,11 +31,11 @@ subtest normal => sub {
     });
 
     like $tzil->slurp_file('build/Changes'), qr/\[Dependency Changes\]/, 'Group created';
-    like $tzil->slurp_file('build/Changes'), qr/\(runtime requires\) Added Moosey/, 'New dependecy added';
+    like $tzil->slurp_file('build/Changes'), qr/\(run req\) \+ Moosey/, 'New dependecy added';
 
     if($ENV{'AUTHOR_TESTING'}) {
-        like $tzil->slurp_file('build/Changes'), qr/\(develop requires\) Changed Test::More/, 'Dependecy version changed';
-        like $tzil->slurp_file('build/Changes'), qr/\(develop requires\) Removed Dist::Iller/, 'Dependecy removed';
+        like $tzil->slurp_file('build/Changes'), qr/\(dev req\) ~ Test::More/, 'Dependecy version changed';
+        like $tzil->slurp_file('build/Changes'), qr/\(dev req\) - Dist::Iller/, 'Dependecy removed';
     }
 };
 
@@ -52,12 +52,12 @@ subtest existing_group => sub {
     });
 
     like $tzil->slurp_file('build/Changes'), qr/\[Dependency Changes\]/, 'Group created';
-    like $tzil->slurp_file('build/Changes'), qr/\(runtime requires\) Added Moosey/, 'New dependecy added';
-    like $tzil->slurp_file('build/Changes'), qr/\[Dependency Changes\][\s\n\r]*- With a change[\s\r\n]*- \(runtime/, 'Changes added to existing group';
+    like $tzil->slurp_file('build/Changes'), qr/\(run req\) \+ Moosey/, 'New dependecy added';
+    like $tzil->slurp_file('build/Changes'), qr/\[Dependency Changes\][\s\n\r]*- With a change[\s\r\n]*- \(run/, 'Changes added to existing group';
 
     if($ENV{'AUTHOR_TESTING'}) {
-        like $tzil->slurp_file('build/Changes'), qr/\(develop requires\) Changed Test::More/, 'Dependecy version changed';
-        like $tzil->slurp_file('build/Changes'), qr/\(develop requires\) Removed Dist::Iller/, 'Dependecy removed';
+        like $tzil->slurp_file('build/Changes'), qr/\(dev req\) ~ Test::More/, 'Dependecy version changed';
+        like $tzil->slurp_file('build/Changes'), qr/\(dev req\) - Dist::Iller/, 'Dependecy removed';
     }
 };
 
