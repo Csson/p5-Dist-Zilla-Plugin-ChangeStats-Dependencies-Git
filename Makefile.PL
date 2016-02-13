@@ -31,6 +31,7 @@ my %WriteMakefileArgs = (
     "syntax" => 0
   },
   "TEST_REQUIRES" => {
+    "Dist::Zilla::Plugin::Prereqs::FromCPANfile" => 0,
     "ExtUtils::MakeMaker" => 0,
     "File::Spec" => 0,
     "IO::Handle" => 0,
@@ -47,6 +48,7 @@ my %WriteMakefileArgs = (
 my %FallbackPrereqs = (
   "CPAN::Changes" => "0.400002",
   "CPAN::Changes::Group" => 0,
+  "Dist::Zilla::Plugin::Prereqs::FromCPANfile" => 0,
   "Dist::Zilla::Role::FileMunger" => "5.000",
   "Dist::Zilla::Role::Plugin" => "5.000",
   "ExtUtils::MakeMaker" => 0,

@@ -1,4 +1,4 @@
-# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-13 22:44:39 UTC.
+# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-13 22:51:12 UTC.
 
 on runtime => sub {
     requires 'CPAN::Changes' => '0.400002';
@@ -16,6 +16,7 @@ on runtime => sub {
     requires 'syntax' => '0';
 };
 on test => sub {
+    requires 'Dist::Zilla::Plugin::Prereqs::FromCPANfile' => '0';
     requires 'ExtUtils::MakeMaker' => '0';
     requires 'File::Spec' => '0';
     requires 'IO::Handle' => '0';

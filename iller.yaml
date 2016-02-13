@@ -29,6 +29,10 @@ prereqs:
       - syntax
       - Syntax::Feature::Qi: 0.2004
 
+  test:
+    requires:
+      - Dist::Zilla::Plugin::Prereqs::FromCPANfile
+
 plugins:
   - +config: Author::CSSON
 
