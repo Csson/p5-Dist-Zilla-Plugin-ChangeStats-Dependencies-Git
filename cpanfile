@@ -1,4 +1,4 @@
-# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-13 22:22:37 UTC.
+# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-13 22:44:39 UTC.
 
 on runtime => sub {
     requires 'CPAN::Changes' => '0.400002';
@@ -32,7 +32,6 @@ on develop => sub {
     requires 'Dist::Iller' => '0.1405';
     requires 'Dist::Iller::Config::Author::CSSON' => '0.0304';
     requires 'Dist::Zilla::Plugin::BumpVersionAfterRelease::Transitional' => '0';
-    requires 'Dist::Zilla::Plugin::ChangeStats::Dependencies::Git' => '0';
     requires 'Dist::Zilla::Plugin::ChangeStats::Git' => 'v0.5.0';
     requires 'Dist::Zilla::Plugin::CheckChangesHasContent' => '0';
     requires 'Dist::Zilla::Plugin::Clean' => '0';

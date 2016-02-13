@@ -32,6 +32,8 @@ prereqs:
 plugins:
   - +config: Author::CSSON
 
+  - +remove_plugin: ChangeStats::Dependencies::Git
+
 ---
 doctype: weaver
 
