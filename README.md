@@ -30,7 +30,7 @@ For this to work the following must be true:
 - The changelog must conform to [CPAN::Changes::Spec](https://metacpan.org/pod/CPAN::Changes::Spec).
 - There must be a `META.json` in both the `branch` and in the tags.
 - Git tag names must be identical to (or a superset of) the version numbers in the changelog.
-- The plugin should come before \[NextRelease\] or similar in dist.ini.
+- This plugin should come before \[NextRelease\] or similar in dist.ini.
 
 # ATTRIBUTES
 

@@ -1,4 +1,4 @@
-# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-13 22:51:12 UTC.
+# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-14 16:17:08 UTC.
 
 on runtime => sub {
     requires 'CPAN::Changes' => '0.400002';
@@ -9,11 +9,9 @@ on runtime => sub {
     requires 'JSON::MaybeXS' => '0';
     requires 'Module::CPANfile' => '0';
     requires 'Moose' => '2.1400';
-    requires 'Syntax::Feature::Qi' => '0.2004';
     requires 'Types::Standard' => '1.000000';
     requires 'namespace::autoclean' => '0.18';
     requires 'perl' => '5.010000';
-    requires 'syntax' => '0';
 };
 on test => sub {
     requires 'Dist::Zilla::Plugin::Prereqs::FromCPANfile' => '0';
@@ -21,7 +19,10 @@ on test => sub {
     requires 'File::Spec' => '0';
     requires 'IO::Handle' => '0';
     requires 'IPC::Open3' => '0';
+    requires 'Syntax::Feature::Qi' => '0.2004';
+    requires 'Test::DZil' => '5.000';
     requires 'Test::More' => '0.96';
+    requires 'syntax' => '0';
 };
 on test => sub {
     recommends 'CPAN::Meta' => '2.120900';

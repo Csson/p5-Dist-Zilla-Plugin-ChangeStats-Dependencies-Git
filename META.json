@@ -112,11 +112,9 @@
             "JSON::MaybeXS" : "0",
             "Module::CPANfile" : "0",
             "Moose" : "2.1400",
-            "Syntax::Feature::Qi" : "0.2004",
             "Types::Standard" : "1.000000",
             "namespace::autoclean" : "0.18",
-            "perl" : "5.010000",
-            "syntax" : "0"
+            "perl" : "5.010000"
          }
       },
       "test" : {
@@ -129,7 +127,10 @@
             "File::Spec" : "0",
             "IO::Handle" : "0",
             "IPC::Open3" : "0",
-            "Test::More" : "0.96"
+            "Syntax::Feature::Qi" : "0.2004",
+            "Test::DZil" : "5.000",
+            "Test::More" : "0.96",
+            "syntax" : "0"
          }
       }
    },
