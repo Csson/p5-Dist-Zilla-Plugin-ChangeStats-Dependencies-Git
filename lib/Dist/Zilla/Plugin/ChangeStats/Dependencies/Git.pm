@@ -215,7 +215,6 @@ sub add_stats {
 
     FILE:
     for my $file (@numstats) {
-        warn $file;
         my($insertions, $deletions, $path) = split /\s+/, $file, 3;
         next FILE if grep { $path eq $_ } $self->all_stats_skip_files;
         next FILE if grep { $path =~ m{$_}i } $self->all_stats_skip_matches;
