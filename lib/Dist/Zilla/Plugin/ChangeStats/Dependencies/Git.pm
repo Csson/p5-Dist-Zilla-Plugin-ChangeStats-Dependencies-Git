@@ -268,17 +268,11 @@ For this to work the following must be true:
 
 =for :list
 * The changelog must conform to L<CPAN::Changes::Spec>.
-* There must be a C<META.json> in both the C<branch> and in the tags.
+* There must be a C<META.json> in both the working directory and in the tags.
 * Git tag names must be identical to (or a superset of) the version numbers in the changelog.
 * This plugin should come before [NextRelease] or similar in dist.ini.
 
 =head1 ATTRIBUTES
-
-=head2 branch
-
-Default: C<master>
-
-The development branch.
 
 
 =head2 change_file
