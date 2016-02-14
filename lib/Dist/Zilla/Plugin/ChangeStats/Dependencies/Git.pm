@@ -194,7 +194,7 @@ For this to work the following must be true:
 * The changelog must conform to L<CPAN::Changes::Spec>.
 * There must be a C<META.json> in both the C<branch> and in the tags.
 * Git tag names must be identical to (or a superset of) the version numbers in the changelog.
-* The plugin should come before [NextRelease] or similar in dist.ini.
+* This plugin should come before [NextRelease] or similar in dist.ini.
 
 =head1 ATTRIBUTES
 

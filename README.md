@@ -2,7 +2,7 @@
 
 Dist::Zilla::Plugin::ChangeStats::Dependencies::Git - Add dependency changes to the changelog
 
-![Requires Perl 5.10+](https://img.shields.io/badge/perl-5.10+-brightgreen.svg) [![Travis status](https://api.travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git.svg?branch=master)](https://travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git) ![coverage 83.6%](https://img.shields.io/badge/coverage-83.6%-orange.svg)
+![Requires Perl 5.10+](https://img.shields.io/badge/perl-5.10+-brightgreen.svg) [![Travis status](https://api.travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git.svg?branch=master)](https://travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git) ![coverage 26.1%](https://img.shields.io/badge/coverage-26.1%-red.svg)
 
 # VERSION
 
