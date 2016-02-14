@@ -212,7 +212,7 @@ sub add_stats {
         insertions => 0,
         deletions => 0,
     };
-use Data::Printer;
+
     FILE:
     for my $file (@numstats) {
         warn $file;
@@ -224,7 +224,6 @@ use Data::Printer;
         ++$counter->{'files'};
         $counter->{'insertions'} += $insertions =~ m{^\d+$} ? $insertions : 0;
         $counter->{'deletions'}  += $deletions  =~ m{^\d+$} ? $deletions  : 0;
-        p $counter;
     }
 
     my $output = sprintf '%d file%s changed, %d insertion%s(+), %d deletion%s(-)',
