@@ -1,4 +1,4 @@
-# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-14 16:59:58 UTC.
+# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-14 20:27:54 UTC.
 
 on runtime => sub {
     requires 'CPAN::Changes' => '0.400002';
@@ -9,6 +9,7 @@ on runtime => sub {
     requires 'JSON::MaybeXS' => '0';
     requires 'Module::CPANfile' => '0';
     requires 'Moose' => '2.1400';
+    requires 'Path::Tiny' => '0';
     requires 'Types::Standard' => '1.000000';
     requires 'namespace::autoclean' => '0.18';
     requires 'perl' => '5.010000';
