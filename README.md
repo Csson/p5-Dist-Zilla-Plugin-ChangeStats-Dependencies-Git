@@ -2,11 +2,11 @@
 
 Dist::Zilla::Plugin::ChangeStats::Dependencies::Git - Add dependency changes to the changelog
 
-![Requires Perl 5.10+](https://img.shields.io/badge/perl-5.10+-brightgreen.svg) [![Travis status](https://api.travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git.svg?branch=master)](https://travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git) 
+![Requires Perl 5.10+](https://img.shields.io/badge/perl-5.10+-brightgreen.svg) [![Travis status](https://api.travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git.svg?branch=master)](https://travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git) ![coverage 26.1%](https://img.shields.io/badge/coverage-26.1%-red.svg)
 
 # VERSION
 
-Version 0.0100, released 2016-02-13.
+Version 0.0100, released 2016-02-14.
 
 # SYNOPSIS
 
@@ -28,12 +28,17 @@ synopsis might add this:
 For this to work the following must be true:
 
 - The changelog must conform to [CPAN::Changes::Spec](https://metacpan.org/pod/CPAN::Changes::Spec).
-- There must be a [`panfile`](https://metacpan.org/pod/panfile) (this is the source of current dependencies) in the distribution root.
+- There must be a `META.json` in both the `branch` and in the tags.
 - Git tag names must be identical to (or a superset of) the version numbers in the changelog.
-- There must be a `META.json` commited in the git tags.
-- The plugin should come before \[NextRelease\] or similar in dist.ini.
+- This plugin should come before \[NextRelease\] or similar in dist.ini.
 
 # ATTRIBUTES
+
+## branch
+
+Default: `master`
+
+The development branch.
 
 ## change\_file
 

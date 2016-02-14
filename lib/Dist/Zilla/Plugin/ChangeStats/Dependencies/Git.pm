@@ -25,6 +25,11 @@ has repo => (
     is => 'ro',
     default => sub { Git::Repository->new(work_tree => '.')},
 );
+has branch => (
+    is => 'ro',
+    isa => Str,
+    default => 'master',
+);
 has change_file => (
     is => 'ro',
     isa => Str,
@@ -68,23 +73,26 @@ sub munge_files {
         $self->log_debug(['Will compare dependencies with %s'], $previous_release->version);
     }
 
-    # Fetch META.json from the latest tag
-    my($show_output) = join '' => $self->repo->run('show', join ':' => (sprintf ($self->format_tag, $previous_release->version), 'META.json'));
-    if($show_output =~ m{^fatal:}) {
-        $self->log(['Could not find META.json in the %s release - skipping', $previous_release->version]);
+    my $tag_meta = $self->get_meta(sprintf ($self->format_tag, $previous_release->version));
+    my $branch_meta = $self->get_meta($self->branch);
+    if(!defined $tag_meta || !defined $branch_meta) {
         return;
     }
-    my $metajson = decode_json($show_output)->{'prereqs'};
-    my $cpanfile = Module::CPANfile->load->prereqs->as_string_hash;
 
-    my @requirement_changes = ();
+    my @all_requirement_changes = ();
 
     PHASE:
     for my $phase (qw/runtime test build configure develop/) {
         RELATION:
         for my $relation (qw/requires recommends suggests/) {
-            my $prev = $metajson->{ $phase }{ $relation } || {};
-            my $now = $cpanfile->{ $phase }{ $relation } || {};
+            my $requirement_changes = {
+                added => [],
+                changed => [],
+                removed => [],
+            };
+
+            my $prev = $tag_meta->{ $phase }{ $relation } || {};
+            my $now = $branch_meta->{ $phase }{ $relation } || {};
 
             next RELATION if !scalar keys %{ $prev } && !scalar keys %{ $now };
 
@@ -95,32 +103,47 @@ sub munge_files {
                 my $previous_version = exists $prev->{ $module } ? delete $prev->{ $module } : undef;
 
                 if(!defined $previous_version) {
-                    push @requirement_changes => ($self->phase_relation($phase, $relation) . " + $module $current_version");
+                    push @{ $requirement_changes->{'added'} } => "$module $current_version";
                     next MODULE;
                 }
 
                 $previous_version = $previous_version || '(any)';
                 if($current_version ne $previous_version) {
-                    push @requirement_changes => ($self->phase_relation($phase, $relation) . " ~ $module $previous_version --> $current_version");
+                    push @{ $requirement_changes->{'changed'} } => "$module $previous_version --> $current_version";
                 }
             }
             # What was in the last release that currenly isn't there
             for my $module (sort keys %{ $prev }) {
-                push @requirement_changes => ($self->phase_relation($phase, $relation) . " - $module");
+                push @{ $requirement_changes->{'removed'} } => $module;
+            }
+
+            # Add requirement changes to overall list
+            for my $type (qw/added changed removed/) {
+                my $char = $type eq 'added' ? '+' : $type eq 'changed' ? '~' : $type eq 'removed' ? '-' : '!';
+
+                for my $module (@{ $requirement_changes->{ $type }}) {
+                    push @all_requirement_changes => ($self->phase_relation($phase, $relation) . " $char $module");
+                }
             }
         }
     }
 
-    if(!scalar @requirement_changes) {
-        push @requirement_changes => 'No changes';
-    }
-
     my $group = $this_release->get_group($self->group);
-    $group->add_changes(@requirement_changes);
+    $group->add_changes(@all_requirement_changes);
     $file->content($changes->serialize);
 }
 
-sub _next_token { qr/\{\{\$NEXT\}\}/ }
+sub get_meta {
+    my $self = shift;
+    my $branch_or_tag = shift;
+
+    my($show_output) = join '' => $self->repo->run('show', join ':' => ($branch_or_tag, 'META.json'));
+    if($show_output =~ m{^fatal:}) {
+        $self->log(['Could not find META.json in %s - skipping', $branch_or_tag]);
+        return;
+    }
+    return decode_json($show_output)->{'prereqs'};
+}
 
 sub phase_relation {
     my $self = shift;
@@ -134,8 +157,11 @@ sub phase_relation {
            :                         $phase
            ;
     $relation = substr $relation, 0, 3;
+
     return "($phase $relation)";
 }
+
+sub _next_token { qr/\{\{\$NEXT\}\}/ }
 
 __PACKAGE__->meta->make_immutable;
 
@@ -166,12 +192,18 @@ For this to work the following must be true:
 
 =for :list
 * The changelog must conform to L<CPAN::Changes::Spec>.
-* There must be a L<C<panfile>> (this is the source of current dependencies) in the distribution root.
+* There must be a C<META.json> in both the C<branch> and in the tags.
 * Git tag names must be identical to (or a superset of) the version numbers in the changelog.
-* There must be a C<META.json> commited in the git tags.
-* The plugin should come before [NextRelease] or similar in dist.ini.
+* This plugin should come before [NextRelease] or similar in dist.ini.
 
 =head1 ATTRIBUTES
+
+=head2 branch
+
+Default: C<master>
+
+The development branch.
+
 
 =head2 change_file
 
