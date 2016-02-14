@@ -12,6 +12,7 @@ use namespace::autoclean;
 use Types::Standard qw/ArrayRef Bool HashRef Str/;
 use Git::Repository;
 use Module::CPANfile;
+use Path::Tiny;
 use CPAN::Changes;
 use CPAN::Changes::Group;
 use JSON::MaybeXS qw/decode_json/;
@@ -21,14 +22,11 @@ with qw/
     Dist::Zilla::Role::FileMunger
 /;
 
+sub mvp_multivalue_args { qw/stats_skip_file stats_skip_match/ }
+
 has repo => (
     is => 'ro',
     default => sub { Git::Repository->new(work_tree => '.')},
-);
-has branch => (
-    is => 'ro',
-    isa => Str,
-    default => 'master',
 );
 has change_file => (
     is => 'ro',
@@ -46,6 +44,39 @@ has format_tag => (
     default => '%s',
 );
 
+has do_stats => (
+    is => 'ro',
+    isa => Bool,
+    default => 0,
+);
+has stats_skip_file => (
+    is => 'ro',
+    isa => ArrayRef[Str],
+    traits => ['Array'],
+    default => sub { [] },
+    handles => {
+        all_stats_skip_files => 'elements',
+        has_stats_skip_files => 'count',
+    }
+);
+has stats_skip_match => (
+    is => 'ro',
+    isa => ArrayRef[Str],
+    traits => ['Array'],
+    default => sub { [] },
+    handles => {
+        all_stats_skip_matches => 'elements',
+        has_stats_skip_matches => 'count',
+    }
+);
+has stats_text => (
+    is => 'ro',
+    isa => Str,
+    default => 'Code churn',
+);
+
+
+
 sub munge_files {
     my $self = shift;
 
@@ -59,9 +90,14 @@ sub munge_files {
     my $changes = CPAN::Changes->load_string($file->content, next_token => $self->_next_token);
     my($this_release) = ($changes->releases)[-1];
     if($this_release->version ne '{{$NEXT}}') {
-        $self->log(['Cound not find {{$NEXT}} token - skips']);
+        $self->log(['Could not find {{$NEXT}} token - skips']);
         return;
     }
+
+    if(!path('META.json')->exists) {
+        $self->log(['Could not find META.json in distribution root - skips']);
+    }
+    my $current_meta = decode_json(path('META.json')->slurp)->{'prereqs'};
 
     my($previous_release) = grep { $_->version ne '{{$NEXT}}' } reverse $changes->releases;
 
@@ -73,9 +109,10 @@ sub munge_files {
         $self->log_debug(['Will compare dependencies with %s'], $previous_release->version);
     }
 
-    my $tag_meta = $self->get_meta(sprintf ($self->format_tag, $previous_release->version));
-    my $branch_meta = $self->get_meta($self->branch);
-    if(!defined $tag_meta || !defined $branch_meta) {
+    my $git_tag = sprintf $self->format_tag, $previous_release->version;
+
+    my $tag_meta = $self->get_meta($git_tag);
+    if(!defined $tag_meta || !defined $current_meta) {
         return;
     }
 
@@ -92,7 +129,7 @@ sub munge_files {
             };
 
             my $prev = $tag_meta->{ $phase }{ $relation } || {};
-            my $now = $branch_meta->{ $phase }{ $relation } || {};
+            my $now = $current_meta->{ $phase }{ $relation } || {};
 
             next RELATION if !scalar keys %{ $prev } && !scalar keys %{ $now };
 
@@ -129,17 +166,18 @@ sub munge_files {
     }
 
     my $group = $this_release->get_group($self->group);
+    $self->add_stats($group, $git_tag) if $self->do_stats;
     $group->add_changes(@all_requirement_changes);
     $file->content($changes->serialize);
 }
 
 sub get_meta {
     my $self = shift;
-    my $branch_or_tag = shift;
+    my $tag = shift;
 
-    my($show_output) = join '' => $self->repo->run('show', join ':' => ($branch_or_tag, 'META.json'));
+    my($show_output) = join '' => $self->repo->run('show', join ':' => ($tag, 'META.json'));
     if($show_output =~ m{^fatal:}) {
-        $self->log(['Could not find META.json in %s - skipping', $branch_or_tag]);
+        $self->log(['Could not find META.json in %s - skipping', $tag]);
         return;
     }
     return decode_json($show_output)->{'prereqs'};
@@ -162,6 +200,45 @@ sub phase_relation {
 }
 
 sub _next_token { qr/\{\{\$NEXT\}\}/ }
+
+sub add_stats {
+    my $self = shift;
+    my $group = shift;
+    my $git_tag = shift;
+
+    my @numstats = $self->repo->run(qw/diff --numstat/, $git_tag);
+    my $counter = {
+        files => 0,
+        insertions => 0,
+        deletions => 0,
+    };
+use Data::Printer;
+    FILE:
+    for my $file (@numstats) {
+        warn $file;
+        my($insertions, $deletions, $path) = split /\s+/, $file, 3;
+        next FILE if grep { $path eq $_ } $self->all_stats_skip_files;
+        next FILE if grep { $path =~ m{$_}i } $self->all_stats_skip_matches;
+
+        # binary files get '-'
+        ++$counter->{'files'};
+        $counter->{'insertions'} += $insertions =~ m{^\d+$} ? $insertions : 0;
+        $counter->{'deletions'}  += $deletions  =~ m{^\d+$} ? $deletions  : 0;
+        p $counter;
+    }
+
+    my $output = sprintf '%d file%s changed, %d insertion%s(+), %d deletion%s(-)',
+                         $counter->{'files'},
+                         $counter->{'files'} == 1 ? '': 's',
+                         $counter->{'insertions'},
+                         $counter->{'insertions'} == 1 ? '': 's',
+                         $counter->{'deletions'},
+                         $counter->{'deletions'} == 1 ? '': 's';
+
+    my $intro = length $self->stats_text ? $self->stats_text . ': ' : '';
+
+    $group->add_changes($intro . $output);
+}
 
 __PACKAGE__->meta->make_immutable;
 

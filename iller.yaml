@@ -26,6 +26,7 @@ prereqs:
       - JSON::MaybeXS
       - Dist::Zilla::Role::Plugin: 5.000
       - Dist::Zilla::Role::FileMunger: 5.000
+      - Path::Tiny
 
   test:
     requires:

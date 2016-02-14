@@ -25,6 +25,7 @@ my %WriteMakefileArgs = (
     "JSON::MaybeXS" => 0,
     "Module::CPANfile" => 0,
     "Moose" => "2.1400",
+    "Path::Tiny" => 0,
     "Types::Standard" => "1.000000",
     "namespace::autoclean" => "0.18"
   },
@@ -60,6 +61,7 @@ my %FallbackPrereqs = (
   "JSON::MaybeXS" => 0,
   "Module::CPANfile" => 0,
   "Moose" => "2.1400",
+  "Path::Tiny" => 0,
   "Syntax::Feature::Qi" => "0.2004",
   "Test::DZil" => "5.000",
   "Test::More" => "0.96",
