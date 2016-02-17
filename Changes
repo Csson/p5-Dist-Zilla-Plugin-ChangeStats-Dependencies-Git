@@ -4,6 +4,8 @@ Revision history for Dist-Zilla-Plugin-ChangeStats-Dependencies-Git
  [API Changes]
 
  [Bug Fixes]
+  - Skip if META.json doesn't exist, don't die.
+  - Better exception handling if the tag doesn't exist.
 
  [Dependency Changes]
 

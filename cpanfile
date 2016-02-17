@@ -1,4 +1,4 @@
-# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-14 20:27:54 UTC.
+# This file was auto-generated from iller.yaml by Dist::Iller on 2016-02-17 14:01:44 UTC.
 
 on runtime => sub {
     requires 'CPAN::Changes' => '0.400002';
@@ -32,8 +32,7 @@ on configure => sub {
     requires 'ExtUtils::MakeMaker' => '0';
 };
 on develop => sub {
-    requires 'Dist::Iller' => '0.1405';
-    requires 'Dist::Iller::Config::Author::CSSON' => '0.0304';
+    requires 'Dist::Zilla::Plugin::Authority' => '1.009';
     requires 'Dist::Zilla::Plugin::BumpVersionAfterRelease::Transitional' => '0';
     requires 'Dist::Zilla::Plugin::CheckChangesHasContent' => '0';
     requires 'Dist::Zilla::Plugin::Clean' => '0';
@@ -67,7 +66,7 @@ on develop => sub {
     requires 'Dist::Zilla::Plugin::Prereqs::Plugins' => '0';
     requires 'Dist::Zilla::Plugin::Readme' => '0';
     requires 'Dist::Zilla::Plugin::ReadmeAnyFromPod' => '0';
-    requires 'Dist::Zilla::Plugin::RewriteVersion::Transitional' => '0';
+    requires 'Dist::Zilla::Plugin::RewriteVersion::Transitional' => '0.007';
     requires 'Dist::Zilla::Plugin::RunExtraTests' => '0';
     requires 'Dist::Zilla::Plugin::ShareDir' => '0';
     requires 'Dist::Zilla::Plugin::Test::Compile' => '0';
@@ -100,4 +99,8 @@ on develop => sub {
     requires 'Test::NoTabs' => '0';
     requires 'Test::Pod' => '1.41';
     requires 'Test::Warnings' => '0';
+};
+on develop => sub {
+    suggests 'Dist::Iller' => '0.1406';
+    suggests 'Dist::Iller::Config::Author::CSSON' => '0.0307';
 };

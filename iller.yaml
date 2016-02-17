@@ -40,8 +40,6 @@ plugins:
 
   - +remove_plugin: ChangeStats::Dependencies::Git
 
-  - +remove_plugin: ChangeStats::Git
-
 ---
 doctype: weaver
 

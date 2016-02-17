@@ -5,7 +5,7 @@ use warnings;
 package Dist::Zilla::Plugin::ChangeStats::Dependencies::Git;
 
 # ABSTRACT: Add dependency changes to the changelog
-our $VERSION = '0.0100';
+our $VERSION = '0.0101';
 
 use Moose;
 use namespace::autoclean;
@@ -13,6 +13,7 @@ use Types::Standard qw/ArrayRef Bool HashRef Str/;
 use Git::Repository;
 use Module::CPANfile;
 use Path::Tiny;
+use Try::Tiny;
 use CPAN::Changes;
 use CPAN::Changes::Group;
 use JSON::MaybeXS qw/decode_json/;
@@ -96,6 +97,7 @@ sub munge_files {
 
     if(!path('META.json')->exists) {
         $self->log(['Could not find META.json in distribution root - skips']);
+        return;
     }
     my $current_meta = decode_json(path('META.json')->slurp)->{'prereqs'};
 
@@ -175,11 +177,25 @@ sub get_meta {
     my $self = shift;
     my $tag = shift;
 
-    my($show_output) = join '' => $self->repo->run('show', join ':' => ($tag, 'META.json'));
-    if($show_output =~ m{^fatal:}) {
-        $self->log(['Could not find META.json in %s - skipping', $tag]);
+    my(@tags) = $self->repo->run('tag');
+    my($found) = grep { $_ eq $tag } @tags;
+
+    if(!$found) {
+        $self->log(['Could not find tag %s - skipping', $tag]);
         return;
     }
+
+    my $show_output;
+    try {
+        ($show_output) = join '' => $self->repo->run('show', join ':' => ($tag, 'META.json'));
+    }
+    catch {
+        if($_ =~ m{^fatal:}) {
+            $self->log(['Could not find META.json in %s - skipping', $tag]);
+        }
+        die $_;
+    };
+    return if !defined $show_output;
     return decode_json($show_output)->{'prereqs'};
 }
 
