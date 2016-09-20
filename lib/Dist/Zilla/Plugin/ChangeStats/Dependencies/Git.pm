@@ -5,6 +5,7 @@ use warnings;
 package Dist::Zilla::Plugin::ChangeStats::Dependencies::Git;
 
 # ABSTRACT: Add dependency changes to the changelog
+# AUTHORITY
 our $VERSION = '0.0101';
 
 use Moose;
