@@ -27,13 +27,13 @@ prereqs:
       - Dist::Zilla::Role::Plugin: 5.000
       - Dist::Zilla::Role::FileMunger: 5.000
       - Path::Tiny
+      - Try::Tiny
 
   test:
     requires:
       - Dist::Zilla::Plugin::Prereqs::FromCPANfile
       - Test::DZil: 5.000
-      - syntax
-      - Syntax::Feature::Qi: 0.2004
+      - Syntax::Feature::Qi: 1.0000
 
 plugins:
   - +config: Author::CSSON

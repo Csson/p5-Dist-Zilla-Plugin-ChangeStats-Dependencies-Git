@@ -2,11 +2,19 @@
 
 Dist::Zilla::Plugin::ChangeStats::Dependencies::Git - Add dependency changes to the changelog
 
-![Requires Perl 5.10+](https://img.shields.io/badge/perl-5.10+-blue.svg) [![Travis status](https://api.travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git.svg?branch=master)](https://travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git) ![coverage 21.7%](https://img.shields.io/badge/coverage-21.7%-red.svg)
+<div>
+    <p>
+    <img src="https://img.shields.io/badge/perl-5.10+-blue.svg" alt="Requires Perl 5.10+" />
+    <a href="https://travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git"><img src="https://api.travis-ci.org/Csson/p5-Dist-Zilla-Plugin-ChangeStats-Dependencies-Git.svg?branch=master" alt="Travis status" /></a>
+    <a href="http://cpants.cpanauthors.org/release/CSSON/Dist-Zilla-Plugin-ChangeStats-Dependencies-Git-0.0101"><img src="http://badgedepot.code301.com/badge/kwalitee/CSSON/Dist-Zilla-Plugin-ChangeStats-Dependencies-Git/0.0101" alt="Distribution kwalitee" /></a>
+    <a href="http://matrix.cpantesters.org/?dist=Dist-Zilla-Plugin-ChangeStats-Dependencies-Git%200.0101"><img src="http://badgedepot.code301.com/badge/cpantesters/Dist-Zilla-Plugin-ChangeStats-Dependencies-Git/0.0101" alt="CPAN Testers result" /></a>
+    <img src="https://img.shields.io/badge/coverage-20.5%-red.svg" alt="coverage 20.5%" />
+    </p>
+</div>
 
 # VERSION
 
-Version 0.0101, released 2016-02-17.
+Version 0.0101, released 2016-09-20.
 
 # SYNOPSIS
 
