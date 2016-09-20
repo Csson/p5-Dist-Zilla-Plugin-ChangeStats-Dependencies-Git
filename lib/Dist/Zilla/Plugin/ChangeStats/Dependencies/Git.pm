@@ -44,6 +44,11 @@ has format_tag => (
     isa => Str,
     default => '%s',
 );
+has add_to_first_release => (
+    is => 'ro',
+    isa => Bool,
+    default => 0,
+);
 
 has do_stats => (
     is => 'ro',
@@ -103,19 +108,26 @@ sub munge_files {
 
     my($previous_release) = grep { $_->version ne '{{$NEXT}}' } reverse $changes->releases;
 
-    if(!defined $previous_release) {
+    my $is_first_release = defined $previous_release ? 0 : 1;
+
+    my $tag_meta;
+    my $git_tag;
+    if($self->add_to_first_release && $is_first_release) {
+        $self->log(['First release - adds all dependencies']);
+        $tag_meta = {}; # fake meta
+    }
+    elsif($is_first_release) {
         $self->log(['Has no earlier versions in changelog - no dependency changes']);
         return;
     }
     else {
         $self->log_debug(['Will compare dependencies with %s'], $previous_release->version);
-    }
+        $git_tag = sprintf $self->format_tag, $previous_release->version;
 
-    my $git_tag = sprintf $self->format_tag, $previous_release->version;
-
-    my $tag_meta = $self->get_meta($git_tag);
-    if(!defined $tag_meta || !defined $current_meta) {
-        return;
+        $tag_meta = $self->get_meta($git_tag);
+        if(!defined $tag_meta || !defined $current_meta) {
+            return;
+        }
     }
 
     my @all_requirement_changes = ();
@@ -168,7 +180,7 @@ sub munge_files {
     }
 
     my $group = $this_release->get_group($self->group);
-    $self->add_stats($group, $git_tag) if $self->do_stats;
+    $self->add_stats($group, $git_tag) if !$is_first_release && $self->do_stats;
     $group->add_changes(@all_requirement_changes);
     $file->content($changes->serialize);
 }
